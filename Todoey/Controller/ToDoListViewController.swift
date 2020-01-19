@@ -160,5 +160,18 @@ extension ToDoListViewController : UISearchBarDelegate {
         tableView.reloadData()
     }
     
+    //Toda vez que algum caractere for adicionado ou removido do SearchBar, esse metodo sera chamado
+    func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
+        //Se o conteudo tiver mudado para uma string vazia, entao recarregamos todos os itens do TodoList na tableView.
+        if searchBar.text?.count == 0 {
+            loadItems()
+            
+            //Uma vez que os itens sao carregados, o teclado do searchBar e dispensado. Como estamos interagindo com elementos UI, temos que colocar em uma fila assincrona.
+            DispatchQueue.main.async {
+               searchBar.resignFirstResponder()
+            }
+        }
+    }
+    
 }
 
