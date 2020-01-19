@@ -12,4 +12,6 @@ struct K {
     static let cellIdentifier = "ToDoItemCell"
     static let toDoitemsArray = "ToDoItemsArray"
     static let pathComponent = "Items.plist"
+    static let doneKey = "done"
+    static let titleKey = "title"
 }

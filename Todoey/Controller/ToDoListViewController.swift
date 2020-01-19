@@ -47,9 +47,11 @@ class ToDoListViewController: UITableViewController {
     //MARK - TableView Delegate Methods
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         
-        //print(itemArray[indexPath.row].title)
+        //itemArray[indexPath.row].done = !itemArray[indexPath.row].done
         
-        itemArray[indexPath.row].done = !itemArray[indexPath.row].done
+        //Aqui estamos usando o metodo UPDATE para setar o valor de atributos dos objetos presentes nas tabelas do CoreData
+        //Note que itemArray contem objetos do tipo TodoItem. E toda instancia de TodoItem agora e um NSManagedObject pois trata-se de tabela do Coredata. Entao, todo objeto NSManagedObject possui o metodo setValue.
+        itemArray[indexPath.row].setValue(!itemArray[indexPath.row].done, forKey: K.doneKey)
         
         saveItems()
         
@@ -112,6 +114,11 @@ class ToDoListViewController: UITableViewController {
         }catch{
             print("Error fetching data. \(error)")
         }
+    }
+    
+    func deleteItem(at index:Int) {
+        //Esse metodo deleta um NSManagedObject do context.
+        context.delete(itemArray[index])
     }
 }
 
