@@ -13,17 +13,21 @@ class ToDoListViewController: UITableViewController {
         
     var itemArray = [TodoItem]()
     
+    @IBOutlet weak var searchBar: UISearchBar!
+    
     let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
     
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view.
         
+        searchBar.delegate = self
+        
       //Agora os dados sao carregados de um arquivo do coredata
         loadItems()
     }
 
-    //MARK - TableView Datasource Methods
+    //MARK: - TableView Datasource Methods
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         super.tableView(tableView, numberOfRowsInSection: section)
         
@@ -44,7 +48,7 @@ class ToDoListViewController: UITableViewController {
     }
     
     
-    //MARK - TableView Delegate Methods
+    //MARK: - TableView Delegate Methods
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         
         //itemArray[indexPath.row].done = !itemArray[indexPath.row].done
@@ -97,6 +101,7 @@ class ToDoListViewController: UITableViewController {
         present(alert, animated: true, completion: nil)
     }
     
+    //MARK: - CRUD Operations
     func saveItems() {
         do {
             try context.save()
@@ -120,5 +125,46 @@ class ToDoListViewController: UITableViewController {
         //Esse metodo deleta um NSManagedObject do context.
         context.delete(itemArray[index])
     }
+}
+
+//MARK: - UISearchBarDelegate Methods
+extension ToDoListViewController : UISearchBarDelegate {
+    
+    //Quando o usuario clicar no botao de pesquisar do SearchBar, esse metodo e chamado
+    func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
+        let request : NSFetchRequest<TodoItem> = TodoItem.fetchRequest()
+        //Criamos um filtro para a request, ou predicate.
+        //A query possui a sintax NSPredicate, leia o cheaatSheet para ter uma ideia dos possiveis operadores.
+        //No caso abaixo, %@ vai ser substituido pelo conteudo de searchBar.text!
+        //Serao buscados todos os dados da tabela cujo conteudo do campo "title" CONTENHA o conteudo de searchBar.text!
+        //[cd] significa que os acentos serao ignorados[d] e nao havera distincao entre maiusculas e minusculas[c]
+        let predicate = NSPredicate(format: "title CONTAINS[cd] %@", searchBar.text!)
+        
+        //Estou adicionando a query(filtro) para a requisicao referenciada por request
+        request.predicate = predicate
+        
+        //Criamos uma diretiva para ordenar os dados que serao retornados
+        //Quero ordenar os dados pelo campo "title" em ordem ascendente (alfabetica)
+        let sortDescriptor = NSSortDescriptor(key: "title", ascending: true)
+        
+        //Estou adicionando a diretiva de ordenacao ao atributo sortDescriptors que a variavel request possui.
+        //Veja que esse atributo deve ser um array de diretivas. Mas como so queremos adicionar uma, passamos um array de um unico elemento
+        request.sortDescriptors = [sortDescriptor]
+        
+        //Agora executamos a request da forma que ja fizemos no metodo loadItems()
+        do{
+            //Estou buscando no Database os dados da tabela especificada dentro de request.
+            itemArray = try context.fetch(request)
+        }catch{
+            print("Error fetching data. \(error)")
+        }
+        
+        if itemArray.count == 0 {
+            loadItems()
+        }
+        
+        tableView.reloadData()
+    }
+    
 }
 
