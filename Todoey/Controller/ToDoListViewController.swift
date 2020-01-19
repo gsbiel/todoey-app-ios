@@ -110,9 +110,8 @@ class ToDoListViewController: UITableViewController {
         }
     }
     
-    func loadItems() {
+    func loadItems(with request : NSFetchRequest<TodoItem> = TodoItem.fetchRequest()) {
         // NSFetchRequest<TodoItem> e um tipo de dado. Quer dizer que a variavel request vai armazenar um emissor de requisicoes de objetos do tipo TodoItem.
-        let request : NSFetchRequest<TodoItem> = TodoItem.fetchRequest()
         do{
             //Estou buscando no Database os dados da tabela especificada dentro de request.
             itemArray = try context.fetch(request)
@@ -152,12 +151,7 @@ extension ToDoListViewController : UISearchBarDelegate {
         request.sortDescriptors = [sortDescriptor]
         
         //Agora executamos a request da forma que ja fizemos no metodo loadItems()
-        do{
-            //Estou buscando no Database os dados da tabela especificada dentro de request.
-            itemArray = try context.fetch(request)
-        }catch{
-            print("Error fetching data. \(error)")
-        }
+        loadItems(with : request)
         
         if itemArray.count == 0 {
             loadItems()
