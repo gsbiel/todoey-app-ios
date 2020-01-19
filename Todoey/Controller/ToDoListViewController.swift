@@ -7,6 +7,7 @@
 //
 
 import UIKit
+import CoreData
 
 class ToDoListViewController: UITableViewController {
     
@@ -14,10 +15,9 @@ class ToDoListViewController: UITableViewController {
     // Antes eu estava persistindo dados no UserDefaults
     // let defaults = UserDefaults.standard
     
-    //Agora estou usando a pasta de documentos do App para persistir dados. entao, para isso preciso pegar a referencia do caminho para esse diretorio
-    let dataFilePath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first?.appendingPathComponent(K.pathComponent)
-    
     var itemArray = [TodoItem]()
+    
+    let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -29,7 +29,7 @@ class ToDoListViewController: UITableViewController {
 //        }
         
 //      Agora os dados sao carregados de um arquivo proprio presente na pasta de documentos do App
-        loadItems()
+        //loadItems()
     }
 
     //MARK - TableView Datasource Methods
@@ -56,7 +56,7 @@ class ToDoListViewController: UITableViewController {
     //MARK - TableView Delegate Methods
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         
-        print(itemArray[indexPath.row].title)
+        //print(itemArray[indexPath.row].title)
         
         itemArray[indexPath.row].done = !itemArray[indexPath.row].done
         
@@ -78,8 +78,10 @@ class ToDoListViewController: UITableViewController {
         
         let action = UIAlertAction(title: "Add Item", style: .default) { (action) in
             
-            //Criando um novo TodoItem
-            let newItem = TodoItem(title: textField.text!, done: false)
+            // Criando um novo objeto do tipo TodoItem usando CoreData
+            // Isso corresponde a criar uma nova linha na tabela TodoItem
+            let newItem = TodoItem(context : self.context)
+            newItem.title = textField.text!
             
             // What will happen once the user clicks the Add Item button on our Alert
             self.itemArray.append(newItem)
@@ -106,36 +108,34 @@ class ToDoListViewController: UITableViewController {
     }
     
     func saveItems() {
-        let encoder = PropertyListEncoder()
         
         do {
-            let data = try encoder.encode(itemArray)
-            try data.write(to : dataFilePath! )
+            try context.save()
         }catch{
-                print("Error encoding item array. \(error)")
+                print("Error saving context. \(error)")
         }
     }
     
-    func loadItems() {
-        
-        /*
-            A sintaxe if let try? abaixo faz o seguinte:
-            - Cria-se um buffer que aponta para dataFilePath
-            - Caso aconteca um erro, o try vai alarmar e o catch vai ser executado
-            - Caso nao de erro, o resultado vai ser armazenado em data, desde que seja nao nulo, por conta do option binding
-            - se for nulo, todo o bloco do if vai ser pulado
-        */
-        if let data =  try? Data(contentsOf: dataFilePath!) {
-            // Criando uma instancia do decodificador
-            let decoder = PropertyListDecoder()
-            do{
-                // O comando abaixo decodifica os dados do arquivo, cujo buffer esta na variavel "data", em um array de objetos do tipo TodoItem.
-                // O array de objetos do tipo TodoItem e passado para a variavel itemArray
-                itemArray = try decoder.decode([TodoItem].self, from: data)
-            }catch{
-                print("Error decoding the array. \(error)")
-            }
-        }
-    }
+//    func loadItems() {
+//
+//        /*
+//            A sintaxe if let try? abaixo faz o seguinte:
+//            - Cria-se um buffer que aponta para dataFilePath
+//            - Caso aconteca um erro, o try vai alarmar e o catch vai ser executado
+//            - Caso nao de erro, o resultado vai ser armazenado em data, desde que seja nao nulo, por conta do option binding
+//            - se for nulo, todo o bloco do if vai ser pulado
+//        */
+//        if let data =  try? Data(contentsOf: dataFilePath!) {
+//            // Criando uma instancia do decodificador
+//            let decoder = PropertyListDecoder()
+//            do{
+//                // O comando abaixo decodifica os dados do arquivo, cujo buffer esta na variavel "data", em um array de objetos do tipo TodoItem.
+//                // O array de objetos do tipo TodoItem e passado para a variavel itemArray
+//                itemArray = try decoder.decode([TodoItem].self, from: data)
+//            }catch{
+//                print("Error decoding the array. \(error)")
+//            }
+//        }
+//    }
 }
 
