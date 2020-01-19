@@ -10,11 +10,7 @@ import UIKit
 import CoreData
 
 class ToDoListViewController: UITableViewController {
-    
-    // Para entender o que e UserDefaults.standard leia sobre SingleTon Objects.
-    // Antes eu estava persistindo dados no UserDefaults
-    // let defaults = UserDefaults.standard
-    
+        
     var itemArray = [TodoItem]()
     
     let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
@@ -23,13 +19,8 @@ class ToDoListViewController: UITableViewController {
         super.viewDidLoad()
         // Do any additional setup after loading the view.
         
-//      O codigo abaixo pegava os dados salvos no UserDefaults
-//        if let items = defaults.array(forKey: K.toDoitemsArray) as? [TodoItem] {
-//            itemArray = items
-//        }
-        
-//      Agora os dados sao carregados de um arquivo proprio presente na pasta de documentos do App
-        //loadItems()
+      //Agora os dados sao carregados de um arquivo do coredata
+        loadItems()
     }
 
     //MARK - TableView Datasource Methods
@@ -86,10 +77,7 @@ class ToDoListViewController: UITableViewController {
             // What will happen once the user clicks the Add Item button on our Alert
             self.itemArray.append(newItem)
             
-            // persistindo dados no banco de dados UserDefaults
-            //self.defaults.set(self.itemArray, forKey: K.toDoitemsArray)
-            
-            // Agora os dados sao persistidos em um arquivo proprio presente na pasta de documentos do App.
+            // Agora os dados sao persistidos em no SQLite atraves do Coredata.
             self.saveItems()
             
             // Ao adicionar mais itens ao array, temos que recarregar a tabela para que os novos itens fiquem visiveis.
@@ -108,7 +96,6 @@ class ToDoListViewController: UITableViewController {
     }
     
     func saveItems() {
-        
         do {
             try context.save()
         }catch{
@@ -116,26 +103,15 @@ class ToDoListViewController: UITableViewController {
         }
     }
     
-//    func loadItems() {
-//
-//        /*
-//            A sintaxe if let try? abaixo faz o seguinte:
-//            - Cria-se um buffer que aponta para dataFilePath
-//            - Caso aconteca um erro, o try vai alarmar e o catch vai ser executado
-//            - Caso nao de erro, o resultado vai ser armazenado em data, desde que seja nao nulo, por conta do option binding
-//            - se for nulo, todo o bloco do if vai ser pulado
-//        */
-//        if let data =  try? Data(contentsOf: dataFilePath!) {
-//            // Criando uma instancia do decodificador
-//            let decoder = PropertyListDecoder()
-//            do{
-//                // O comando abaixo decodifica os dados do arquivo, cujo buffer esta na variavel "data", em um array de objetos do tipo TodoItem.
-//                // O array de objetos do tipo TodoItem e passado para a variavel itemArray
-//                itemArray = try decoder.decode([TodoItem].self, from: data)
-//            }catch{
-//                print("Error decoding the array. \(error)")
-//            }
-//        }
-//    }
+    func loadItems() {
+        // NSFetchRequest<TodoItem> e um tipo de dado. Quer dizer que a variavel request vai armazenar um emissor de requisicoes de objetos do tipo TodoItem.
+        let request : NSFetchRequest<TodoItem> = TodoItem.fetchRequest()
+        do{
+            //Estou buscando no Database os dados da tabela especificada dentro de request.
+            itemArray = try context.fetch(request)
+        }catch{
+            print("Error fetching data. \(error)")
+        }
+    }
 }
 
