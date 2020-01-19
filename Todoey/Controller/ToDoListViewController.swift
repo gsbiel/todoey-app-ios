@@ -71,8 +71,10 @@ class ToDoListViewController: UITableViewController {
         // Criando um UITextField programaticamente para inserilo no Alert.
         var textField = UITextField()
         
+        //Criando um objeto to tipo UIAlertController
         let alert = UIAlertController(title: "Add new todoey item", message: "", preferredStyle: .alert)
         
+        //Criando a action que vai ser executada apos o usuario pressionar o botao do alert
         let action = UIAlertAction(title: "Add Item", style: .default) { (action) in
             
             // Criando um novo objeto do tipo TodoItem usando CoreData
