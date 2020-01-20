@@ -8,6 +8,7 @@
 
 import UIKit
 import CoreData
+import RealmSwift
 
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {
@@ -17,6 +18,16 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         // Override point for customization after application launch.
+        
+        // Abaixo estamos criando uma instancia do database. Entenda ele como algo analogo ao "persistentContainer" que voce viu no CoreData.
+        do{
+            let realm = try Realm()
+            //Pra onde vao os dados. Eles vao para um arquivo .realm localizado no caminho a seguir:
+            print(Realm.Configuration.defaultConfiguration.fileURL!)
+        }catch{
+            print("Error while initializing the realm. \(error)")
+        }
+        
         return true
     }
 
