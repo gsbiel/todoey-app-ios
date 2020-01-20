@@ -13,6 +13,20 @@ class ToDoListViewController: UITableViewController {
         
     var itemArray = [TodoItem]()
     
+    var selectedCategory : CategoryItem? {
+        /*
+            Essa sintaxe e bem diferente. Antes, estavamos chamando o metodo loadItems dentro de viewDidLoad.
+            Mas na atual logica, vamos precisar da categoria que foi selecionada na tela anterior para carregar itens. E quem
+            garanta que a mesma vai estar disponivel (valor diferente de nil) no momento que ela for chamada em viewDidLoad?
+         
+            Para garantir que o metodo loadItems() seja chamado apenas quando a variavel selectedCategory for inicializada,
+            usamos essa sintaxe!
+         */
+        didSet {
+            loadItems()
+        }
+    }
+    
     @IBOutlet weak var searchBar: UISearchBar!
     
     let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
@@ -24,7 +38,8 @@ class ToDoListViewController: UITableViewController {
         searchBar.delegate = self
         
       //Agora os dados sao carregados de um arquivo do coredata
-        loadItems()
+      // Esse metodo agora e chamado na hora de inicializar a variavel selectedCategory
+      //loadItems()
     }
 
     //MARK: - TableView Datasource Methods
@@ -82,6 +97,10 @@ class ToDoListViewController: UITableViewController {
             let newItem = TodoItem(context : self.context)
             newItem.title = textField.text!
             
+            // Essa linha expressa a relacao entre um item de TodoItem com CategoryItem. Estamos dizendo a qual CategoryItem
+            // pertence o TodoItem que esta sendo criado. Isso e feito pelo atributo parentCategory
+            newItem.parentCategory = self.selectedCategory
+            
             // What will happen once the user clicks the Add Item button on our Alert
             self.itemArray.append(newItem)
             
@@ -112,8 +131,18 @@ class ToDoListViewController: UITableViewController {
         }
     }
     
-    func loadItems(with request : NSFetchRequest<TodoItem> = TodoItem.fetchRequest()) {
+    func loadItems(with request : NSFetchRequest<TodoItem> = TodoItem.fetchRequest(), predicate : NSPredicate? = nil) {
         // NSFetchRequest<TodoItem> e um tipo de dado. Quer dizer que a variavel request vai armazenar um emissor de requisicoes de objetos do tipo TodoItem.
+        let categoryPredicate = NSPredicate(format: "parentCategory.name MATCHES %@", selectedCategory!.name!)
+        
+        if let aditionalPredicate = predicate {
+            let compoundPredicate = NSCompoundPredicate(andPredicateWithSubpredicates: [categoryPredicate, aditionalPredicate])
+            request.predicate = compoundPredicate
+        }
+        else{
+            request.predicate = categoryPredicate
+        }
+        
         do{
             //Estou buscando no Database os dados da tabela especificada dentro de request.
             itemArray = try context.fetch(request)
@@ -141,9 +170,6 @@ extension ToDoListViewController : UISearchBarDelegate {
         //[cd] significa que os acentos serao ignorados[d] e nao havera distincao entre maiusculas e minusculas[c]
         let predicate = NSPredicate(format: "title CONTAINS[cd] %@", searchBar.text!)
         
-        //Estou adicionando a query(filtro) para a requisicao referenciada por request
-        request.predicate = predicate
-        
         //Criamos uma diretiva para ordenar os dados que serao retornados
         //Quero ordenar os dados pelo campo "title" em ordem ascendente (alfabetica)
         let sortDescriptor = NSSortDescriptor(key: "title", ascending: true)
@@ -153,7 +179,7 @@ extension ToDoListViewController : UISearchBarDelegate {
         request.sortDescriptors = [sortDescriptor]
         
         //Agora executamos a request da forma que ja fizemos no metodo loadItems()
-        loadItems(with : request)
+        loadItems(with : request, predicate : predicate)
         
         if itemArray.count == 0 {
             loadItems()

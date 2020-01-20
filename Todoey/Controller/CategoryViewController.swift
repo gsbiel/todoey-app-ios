@@ -81,5 +81,23 @@ class CategoryViewController: UITableViewController {
     }
     
     //MARK: - TableView Delegate Methods
+    override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        performSegue(withIdentifier: "categoryToTodoey", sender: self)
+    }
     
+    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
+        /*
+         Agora temos duas telas, uma com as categorias de itens, e outra com os itens da categoria que foi selecionada.
+         Quando se clica em uma das categorias, temos que acionar o Segue para a tela de itens. No entanto, antes de transitar
+         entre as telas, e preciso passar uma informacao muito importante para a tela de itens: a categoria que foi clicada! para
+         que, assim, apenas os itens dessa categoria sejam buscados no SQLite para serem exibidos na UI.
+         
+         */
+        let destinationVC = segue.destination as! ToDoListViewController
+        
+        // Esse metodo e chamado antes do metodo acima. A sintaxe abaixo nos permite acessar o index da categoria que foi selecionada. No metodo acima a gente ja tem essa variavel disponivel dentre os argumentos. Mas aqui nao!
+        if let indexPath = tableView.indexPathForSelectedRow {
+            destinationVC.selectedCategory = categoriesArray[indexPath.row]
+        }
+    }
 }
