@@ -7,3 +7,11 @@
 //
 
 import Foundation
+import RealmSwift
+
+class CategoryItem : Object {
+    @objc dynamic var name : String = ""
+    // Aqui estamos criando a relacao entre a classe CategoryItem e TodoItem
+    // Significa que cada Categoria possui uma lista de TodoItem's
+    let items = List<TodoItem>()
+}

@@ -7,10 +7,12 @@
 //
 
 import UIKit
-import CoreData
+import RealmSwift
 
 class CategoryViewController: UITableViewController {
     
+    // Crio uma instancia de Realm.
+    let realm = try! Realm()
     var categoriesArray = [CategoryItem]()
     
     // Obtendo uma referencia do "context" do CoreData
@@ -29,12 +31,13 @@ class CategoryViewController: UITableViewController {
         let alert = UIAlertController(title: "Add New Category", message: "", preferredStyle: .alert)
         
         let action = UIAlertAction(title: "Add Category", style: .default) { (action) in
-            let newCategory = CategoryItem(context: self.context)
+            
+            let newCategory = CategoryItem()
             newCategory.name = textField.text!
             
             self.categoriesArray.append(newCategory)
             
-            self.saveCategories()
+            self.save(category : newCategory)
         }
         
         alert.addAction(action)
@@ -47,22 +50,24 @@ class CategoryViewController: UITableViewController {
         
     }
     
-    func saveCategories() {
+    func save(category : CategoryItem) {
         do{
-            try context.save()
+            try realm.write {
+                realm.add(category)
+            }
         }catch{
             print("Error while saving data. /(error)")
         }
         tableView.reloadData()
     }
     
-    func loadCategories(with request : NSFetchRequest<CategoryItem> = CategoryItem.fetchRequest() ) {
+    func loadCategories() {
         
-        do{
-            categoriesArray = try context.fetch(request)
-        }catch{
-            print("Error while loading data. /(error)")
-        }
+//        do{
+//            categoriesArray = try context.fetch(request)
+//        }catch{
+//            print("Error while loading data. /(error)")
+//        }
         
     }
     

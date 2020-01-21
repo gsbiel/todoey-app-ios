@@ -7,7 +7,6 @@
 //
 
 import UIKit
-import CoreData
 
 class ToDoListViewController: UITableViewController {
         
@@ -23,7 +22,7 @@ class ToDoListViewController: UITableViewController {
             usamos essa sintaxe!
          */
         didSet {
-            loadItems()
+            //loadItems()
         }
     }
     
@@ -35,7 +34,7 @@ class ToDoListViewController: UITableViewController {
         super.viewDidLoad()
         // Do any additional setup after loading the view.
         
-        searchBar.delegate = self
+        //searchBar.delegate = self
         
       //Agora os dados sao carregados de um arquivo do coredata
       // Esse metodo agora e chamado na hora de inicializar a variavel selectedCategory
@@ -94,15 +93,15 @@ class ToDoListViewController: UITableViewController {
             
             // Criando um novo objeto do tipo TodoItem usando CoreData
             // Isso corresponde a criar uma nova linha na tabela TodoItem
-            let newItem = TodoItem(context : self.context)
-            newItem.title = textField.text!
+            //let newItem = TodoItem(context : self.context)
+            //newItem.title = textField.text!
             
             // Essa linha expressa a relacao entre um item de TodoItem com CategoryItem. Estamos dizendo a qual CategoryItem
             // pertence o TodoItem que esta sendo criado. Isso e feito pelo atributo parentCategory
-            newItem.parentCategory = self.selectedCategory
+            //newItem.parentCategory = self.selectedCategory
             
             // What will happen once the user clicks the Add Item button on our Alert
-            self.itemArray.append(newItem)
+            //self.itemArray.append(newItem)
             
             // Agora os dados sao persistidos em no SQLite atraves do Coredata.
             self.saveItems()
@@ -131,68 +130,68 @@ class ToDoListViewController: UITableViewController {
         }
     }
     
-    func loadItems(with request : NSFetchRequest<TodoItem> = TodoItem.fetchRequest(), predicate : NSPredicate? = nil) {
-        // NSFetchRequest<TodoItem> e um tipo de dado. Quer dizer que a variavel request vai armazenar um emissor de requisicoes de objetos do tipo TodoItem.
-        let categoryPredicate = NSPredicate(format: "parentCategory.name MATCHES %@", selectedCategory!.name!)
-        
-        if let aditionalPredicate = predicate {
-            let compoundPredicate = NSCompoundPredicate(andPredicateWithSubpredicates: [categoryPredicate, aditionalPredicate])
-            request.predicate = compoundPredicate
-        }
-        else{
-            request.predicate = categoryPredicate
-        }
-        
-        do{
-            //Estou buscando no Database os dados da tabela especificada dentro de request.
-            itemArray = try context.fetch(request)
-        }catch{
-            print("Error fetching data. \(error)")
-        }
-    }
+//    func loadItems(with request : NSFetchRequest<TodoItem> = TodoItem.fetchRequest(), predicate : NSPredicate? = nil) {
+//        // NSFetchRequest<TodoItem> e um tipo de dado. Quer dizer que a variavel request vai armazenar um emissor de requisicoes de objetos do tipo TodoItem.
+//        let categoryPredicate = NSPredicate(format: "parentCategory.name MATCHES %@", selectedCategory!.name!)
+//
+//        if let aditionalPredicate = predicate {
+//            let compoundPredicate = NSCompoundPredicate(andPredicateWithSubpredicates: [categoryPredicate, aditionalPredicate])
+//            request.predicate = compoundPredicate
+//        }
+//        else{
+//            request.predicate = categoryPredicate
+//        }
+//
+//        do{
+//            //Estou buscando no Database os dados da tabela especificada dentro de request.
+//            itemArray = try context.fetch(request)
+//        }catch{
+//            print("Error fetching data. \(error)")
+//        }
+//    }
     
     func deleteItem(at index:Int) {
         //Esse metodo deleta um NSManagedObject do context.
-        context.delete(itemArray[index])
+        //context.delete(itemArray[index])
     }
 }
 
 //MARK: - UISearchBarDelegate Methods
-extension ToDoListViewController : UISearchBarDelegate {
-    
-    //Quando o usuario clicar no botao de pesquisar do SearchBar, esse metodo e chamado
-    func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
-        let request : NSFetchRequest<TodoItem> = TodoItem.fetchRequest()
-        //Criamos um filtro para a request, ou predicate.
-        //A query possui a sintax NSPredicate, leia o cheaatSheet para ter uma ideia dos possiveis operadores.
-        //No caso abaixo, %@ vai ser substituido pelo conteudo de searchBar.text!
-        //Serao buscados todos os dados da tabela cujo conteudo do campo "title" CONTENHA o conteudo de searchBar.text!
-        //[cd] significa que os acentos serao ignorados[d] e nao havera distincao entre maiusculas e minusculas[c]
-        let predicate = NSPredicate(format: "title CONTAINS[cd] %@", searchBar.text!)
-        
-        //Criamos uma diretiva para ordenar os dados que serao retornados
-        //Quero ordenar os dados pelo campo "title" em ordem ascendente (alfabetica)
-        let sortDescriptor = NSSortDescriptor(key: "title", ascending: true)
-        
-        //Estou adicionando a diretiva de ordenacao ao atributo sortDescriptors que a variavel request possui.
-        //Veja que esse atributo deve ser um array de diretivas. Mas como so queremos adicionar uma, passamos um array de um unico elemento
-        request.sortDescriptors = [sortDescriptor]
-        
-        //Agora executamos a request da forma que ja fizemos no metodo loadItems()
-        loadItems(with : request, predicate : predicate)
-        
-        if itemArray.count == 0 {
-            loadItems()
-        }
-        
-        tableView.reloadData()
-    }
+//extension ToDoListViewController : UISearchBarDelegate {
+//
+//    //Quando o usuario clicar no botao de pesquisar do SearchBar, esse metodo e chamado
+//    func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
+//        let request : NSFetchRequest<TodoItem> = TodoItem.fetchRequest()
+//        //Criamos um filtro para a request, ou predicate.
+//        //A query possui a sintax NSPredicate, leia o cheaatSheet para ter uma ideia dos possiveis operadores.
+//        //No caso abaixo, %@ vai ser substituido pelo conteudo de searchBar.text!
+//        //Serao buscados todos os dados da tabela cujo conteudo do campo "title" CONTENHA o conteudo de searchBar.text!
+//        //[cd] significa que os acentos serao ignorados[d] e nao havera distincao entre maiusculas e minusculas[c]
+//        let predicate = NSPredicate(format: "title CONTAINS[cd] %@", searchBar.text!)
+//
+//        //Criamos uma diretiva para ordenar os dados que serao retornados
+//        //Quero ordenar os dados pelo campo "title" em ordem ascendente (alfabetica)
+//        let sortDescriptor = NSSortDescriptor(key: "title", ascending: true)
+//
+//        //Estou adicionando a diretiva de ordenacao ao atributo sortDescriptors que a variavel request possui.
+//        //Veja que esse atributo deve ser um array de diretivas. Mas como so queremos adicionar uma, passamos um array de um unico elemento
+//        request.sortDescriptors = [sortDescriptor]
+//
+//        //Agora executamos a request da forma que ja fizemos no metodo loadItems()
+//        loadItems(with : request, predicate : predicate)
+//
+//        if itemArray.count == 0 {
+//            loadItems()
+//        }
+//
+//        tableView.reloadData()
+//    }
     
     //Toda vez que algum caractere for adicionado ou removido do SearchBar, esse metodo sera chamado
     func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
         //Se o conteudo tiver mudado para uma string vazia, entao recarregamos todos os itens do TodoList na tableView.
         if searchBar.text?.count == 0 {
-            loadItems()
+            //loadItems()
             
             //Uma vez que os itens sao carregados, o teclado do searchBar e dispensado. Como estamos interagindo com elementos UI, temos que colocar em uma fila assincrona.
             DispatchQueue.main.async {
@@ -201,5 +200,5 @@ extension ToDoListViewController : UISearchBarDelegate {
         }
     }
     
-}
+
 
