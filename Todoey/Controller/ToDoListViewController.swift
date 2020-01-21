@@ -69,13 +69,15 @@ class ToDoListViewController: UITableViewController {
     //MARK: - TableView Delegate Methods
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         
-        //itemArray[indexPath.row].done = !itemArray[indexPath.row].done
-        
-        //Aqui estamos usando o metodo UPDATE para setar o valor de atributos dos objetos presentes nas tabelas do CoreData
-        //Note que itemArray contem objetos do tipo TodoItem. E toda instancia de TodoItem agora e um NSManagedObject pois trata-se de tabela do Coredata. Entao, todo objeto NSManagedObject possui o metodo setValue.
-//        itemArray[indexPath.row].setValue(!itemArray[indexPath.row].done, forKey: K.doneKey)
-        
-        //saveItems()
+        if let item = itemArray?[indexPath.row] {
+            do{
+                try realm.write{
+                    item.done = !item.done
+                }
+            }catch{
+                print("Error while updating the realm. \(error)")
+            }
+        }
         
         tableView.reloadData()
         
@@ -102,6 +104,7 @@ class ToDoListViewController: UITableViewController {
                         // Isso corresponde a criar uma nova linha na tabela TodoItem
                         let newItem = TodoItem()
                         newItem.title = textField.text!
+                        newItem.dateCreated = Date()
                         // Essa linha expressa a relacao entre um item de TodoItem com CategoryItem.
                         currentCategory.items.append(newItem)
                     }
@@ -109,6 +112,8 @@ class ToDoListViewController: UITableViewController {
                     print("Error while saving data. \(error)")
                 }
             }
+            
+            self.loadItems()
             // Ao adicionar mais itens ao array, temos que recarregar a tabela para que os novos itens fiquem visiveis.
             self.tableView.reloadData()
         }
@@ -125,54 +130,23 @@ class ToDoListViewController: UITableViewController {
     }
     
     //MARK: - CRUD Operations
-//    func saveItems() {
-//        do {
-//            try context.save()
-//        }catch{
-//                print("Error saving context. \(error)")
-//        }
-//    }
     
     func loadItems() {
-        itemArray = selectedCategory?.items.sorted(byKeyPath: "title", ascending: true)
-    }
-    
-    func deleteItem(at index:Int) {
-        //Esse metodo deleta um NSManagedObject do context.
-        //context.delete(itemArray[index])
+        itemArray = selectedCategory?.items.sorted(byKeyPath: "dateCreated", ascending: true)
     }
 }
 
 //MARK: - UISearchBarDelegate Methods
-//extension ToDoListViewController : UISearchBarDelegate {
-//
-//    //Quando o usuario clicar no botao de pesquisar do SearchBar, esse metodo e chamado
-//    func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
-//        let request : NSFetchRequest<TodoItem> = TodoItem.fetchRequest()
-//        //Criamos um filtro para a request, ou predicate.
-//        //A query possui a sintax NSPredicate, leia o cheaatSheet para ter uma ideia dos possiveis operadores.
-//        //No caso abaixo, %@ vai ser substituido pelo conteudo de searchBar.text!
-//        //Serao buscados todos os dados da tabela cujo conteudo do campo "title" CONTENHA o conteudo de searchBar.text!
-//        //[cd] significa que os acentos serao ignorados[d] e nao havera distincao entre maiusculas e minusculas[c]
-//        let predicate = NSPredicate(format: "title CONTAINS[cd] %@", searchBar.text!)
-//
-//        //Criamos uma diretiva para ordenar os dados que serao retornados
-//        //Quero ordenar os dados pelo campo "title" em ordem ascendente (alfabetica)
-//        let sortDescriptor = NSSortDescriptor(key: "title", ascending: true)
-//
-//        //Estou adicionando a diretiva de ordenacao ao atributo sortDescriptors que a variavel request possui.
-//        //Veja que esse atributo deve ser um array de diretivas. Mas como so queremos adicionar uma, passamos um array de um unico elemento
-//        request.sortDescriptors = [sortDescriptor]
-//
-//        //Agora executamos a request da forma que ja fizemos no metodo loadItems()
-//        loadItems(with : request, predicate : predicate)
-//
-//        if itemArray.count == 0 {
-//            loadItems()
-//        }
-//
-//        tableView.reloadData()
-//    }
+extension ToDoListViewController : UISearchBarDelegate {
+
+    //Quando o usuario clicar no botao de pesquisar do SearchBar, esse metodo e chamado
+    func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
+        print("entrei aqui")
+        itemArray = itemArray?.filter("title CONTAINS[cd] %@", searchBar.text!)
+            .sorted(byKeyPath: "dateCreated", ascending: true)
+
+        tableView.reloadData()
+    }
     
     //Toda vez que algum caractere for adicionado ou removido do SearchBar, esse metodo sera chamado
     func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
@@ -186,6 +160,4 @@ class ToDoListViewController: UITableViewController {
             }
         }
     }
-    
-
-
+}

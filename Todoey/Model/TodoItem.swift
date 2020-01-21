@@ -12,6 +12,7 @@ import RealmSwift
 class TodoItem : Object {
     @objc dynamic var title : String = ""
     @objc dynamic var done : Bool = false
+    @objc dynamic var dateCreated : Date?
     
     //Aqui estamos implementando a relacao inversa, isto e, entre TodoItem e CategoryItem
     //CategoryItem e TodoItem possuem uma relacao de 1 para muitos. Dizemos que a relacao
