@@ -7,10 +7,13 @@
 //
 
 import UIKit
+import RealmSwift
 
 class ToDoListViewController: UITableViewController {
         
-    var itemArray = [TodoItem]()
+    let realm = try! Realm()
+    
+    var itemArray : Results<TodoItem>?
     
     var selectedCategory : CategoryItem? {
         /*
@@ -22,13 +25,11 @@ class ToDoListViewController: UITableViewController {
             usamos essa sintaxe!
          */
         didSet {
-            //loadItems()
+            loadItems()
         }
     }
     
     @IBOutlet weak var searchBar: UISearchBar!
-    
-    let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -45,7 +46,7 @@ class ToDoListViewController: UITableViewController {
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         super.tableView(tableView, numberOfRowsInSection: section)
         
-        return itemArray.count
+        return itemArray?.count ?? 1
     }
     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
@@ -53,11 +54,14 @@ class ToDoListViewController: UITableViewController {
         
         let cell = tableView.dequeueReusableCell(withIdentifier: K.cellIdentifier, for: indexPath)
         
-        cell.textLabel?.text = itemArray[indexPath.row].title
-        
-        // Estou acessando a celula que foi selecionada e colocando o atributo accessoryType caso ela tenha sido selecionada . Veja la no "Atribute Inspector" que isso corresponde a um simbolo de "checked" sendo inserido no canto direito da celula.
-        cell.accessoryType = itemArray[indexPath.row].done == true ? .checkmark : .none
-        
+        if let item = itemArray?[indexPath.row] {
+            cell.textLabel?.text = item.title
+            
+            // Estou acessando a celula que foi selecionada e colocando o atributo accessoryType caso ela tenha sido selecionada . Veja la no "Atribute Inspector" que isso corresponde a um simbolo de "checked" sendo inserido no canto direito da celula.
+            cell.accessoryType = item.done == true ? .checkmark : .none
+        }else {
+            cell.textLabel?.text = "No items added yet"
+        }
         return cell
     }
     
@@ -69,9 +73,9 @@ class ToDoListViewController: UITableViewController {
         
         //Aqui estamos usando o metodo UPDATE para setar o valor de atributos dos objetos presentes nas tabelas do CoreData
         //Note que itemArray contem objetos do tipo TodoItem. E toda instancia de TodoItem agora e um NSManagedObject pois trata-se de tabela do Coredata. Entao, todo objeto NSManagedObject possui o metodo setValue.
-        itemArray[indexPath.row].setValue(!itemArray[indexPath.row].done, forKey: K.doneKey)
+//        itemArray[indexPath.row].setValue(!itemArray[indexPath.row].done, forKey: K.doneKey)
         
-        saveItems()
+        //saveItems()
         
         tableView.reloadData()
         
@@ -91,21 +95,20 @@ class ToDoListViewController: UITableViewController {
         //Criando a action que vai ser executada apos o usuario pressionar o botao do alert
         let action = UIAlertAction(title: "Add Item", style: .default) { (action) in
             
-            // Criando um novo objeto do tipo TodoItem usando CoreData
-            // Isso corresponde a criar uma nova linha na tabela TodoItem
-            //let newItem = TodoItem(context : self.context)
-            //newItem.title = textField.text!
-            
-            // Essa linha expressa a relacao entre um item de TodoItem com CategoryItem. Estamos dizendo a qual CategoryItem
-            // pertence o TodoItem que esta sendo criado. Isso e feito pelo atributo parentCategory
-            //newItem.parentCategory = self.selectedCategory
-            
-            // What will happen once the user clicks the Add Item button on our Alert
-            //self.itemArray.append(newItem)
-            
-            // Agora os dados sao persistidos em no SQLite atraves do Coredata.
-            self.saveItems()
-            
+            if let currentCategory = self.selectedCategory {
+                do{
+                    try self.realm.write {
+                        // Criando um novo objeto do tipo TodoItem usando Realm
+                        // Isso corresponde a criar uma nova linha na tabela TodoItem
+                        let newItem = TodoItem()
+                        newItem.title = textField.text!
+                        // Essa linha expressa a relacao entre um item de TodoItem com CategoryItem.
+                        currentCategory.items.append(newItem)
+                    }
+                }catch{
+                    print("Error while saving data. \(error)")
+                }
+            }
             // Ao adicionar mais itens ao array, temos que recarregar a tabela para que os novos itens fiquem visiveis.
             self.tableView.reloadData()
         }
@@ -122,33 +125,17 @@ class ToDoListViewController: UITableViewController {
     }
     
     //MARK: - CRUD Operations
-    func saveItems() {
-        do {
-            try context.save()
-        }catch{
-                print("Error saving context. \(error)")
-        }
-    }
-    
-//    func loadItems(with request : NSFetchRequest<TodoItem> = TodoItem.fetchRequest(), predicate : NSPredicate? = nil) {
-//        // NSFetchRequest<TodoItem> e um tipo de dado. Quer dizer que a variavel request vai armazenar um emissor de requisicoes de objetos do tipo TodoItem.
-//        let categoryPredicate = NSPredicate(format: "parentCategory.name MATCHES %@", selectedCategory!.name!)
-//
-//        if let aditionalPredicate = predicate {
-//            let compoundPredicate = NSCompoundPredicate(andPredicateWithSubpredicates: [categoryPredicate, aditionalPredicate])
-//            request.predicate = compoundPredicate
-//        }
-//        else{
-//            request.predicate = categoryPredicate
-//        }
-//
-//        do{
-//            //Estou buscando no Database os dados da tabela especificada dentro de request.
-//            itemArray = try context.fetch(request)
+//    func saveItems() {
+//        do {
+//            try context.save()
 //        }catch{
-//            print("Error fetching data. \(error)")
+//                print("Error saving context. \(error)")
 //        }
 //    }
+    
+    func loadItems() {
+        itemArray = selectedCategory?.items.sorted(byKeyPath: "title", ascending: true)
+    }
     
     func deleteItem(at index:Int) {
         //Esse metodo deleta um NSManagedObject do context.

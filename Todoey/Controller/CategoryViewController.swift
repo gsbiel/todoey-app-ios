@@ -13,10 +13,10 @@ class CategoryViewController: UITableViewController {
     
     // Crio uma instancia de Realm.
     let realm = try! Realm()
-    var categoriesArray = [CategoryItem]()
     
-    // Obtendo uma referencia do "context" do CoreData
-    let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
+    // As queries que fazemos ao realm sempre retornam os dados em um tipo Results, que e um tipo de lista. Entao, vamos declarar nossa variavel global como Results de itens do tipo CategoryItem.
+    var categoriesArray : Results<CategoryItem>?
+
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -34,8 +34,6 @@ class CategoryViewController: UITableViewController {
             
             let newCategory = CategoryItem()
             newCategory.name = textField.text!
-            
-            self.categoriesArray.append(newCategory)
             
             self.save(category : newCategory)
         }
@@ -62,25 +60,19 @@ class CategoryViewController: UITableViewController {
     }
     
     func loadCategories() {
-        
-//        do{
-//            categoriesArray = try context.fetch(request)
-//        }catch{
-//            print("Error while loading data. /(error)")
-//        }
-        
+        categoriesArray = realm.objects(CategoryItem.self)
     }
     
     //MARK: - TableView DataSource Methods
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return categoriesArray.count
+        return categoriesArray?.count ?? 1
     }
     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         
         let cell = tableView.dequeueReusableCell(withIdentifier: "CategoryCell", for: indexPath)
         
-        cell.textLabel?.text = categoriesArray[indexPath.row].name
+        cell.textLabel?.text = categoriesArray?[indexPath.row].name ?? "No Categories added yet"
         
         return cell
     }
@@ -102,7 +94,7 @@ class CategoryViewController: UITableViewController {
         
         // Esse metodo e chamado antes do metodo acima. A sintaxe abaixo nos permite acessar o index da categoria que foi selecionada. No metodo acima a gente ja tem essa variavel disponivel dentre os argumentos. Mas aqui nao!
         if let indexPath = tableView.indexPathForSelectedRow {
-            destinationVC.selectedCategory = categoriesArray[indexPath.row]
+            destinationVC.selectedCategory = categoriesArray?[indexPath.row]
         }
     }
 }
