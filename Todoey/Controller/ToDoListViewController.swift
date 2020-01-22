@@ -9,7 +9,7 @@
 import UIKit
 import RealmSwift
 
-class ToDoListViewController: UITableViewController {
+class ToDoListViewController: SwipeTableViewController {
         
     let realm = try! Realm()
     
@@ -40,6 +40,8 @@ class ToDoListViewController: UITableViewController {
       //Agora os dados sao carregados de um arquivo do coredata
       // Esse metodo agora e chamado na hora de inicializar a variavel selectedCategory
       //loadItems()
+        
+        tableView.rowHeight = 80.0
     }
 
     //MARK: - TableView Datasource Methods
@@ -50,9 +52,8 @@ class ToDoListViewController: UITableViewController {
     }
     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        super.tableView(tableView, cellForRowAt: indexPath)
         
-        let cell = tableView.dequeueReusableCell(withIdentifier: K.cellIdentifier, for: indexPath)
+        let cell = super.tableView(tableView, cellForRowAt: indexPath)
         
         if let item = itemArray?[indexPath.row] {
             cell.textLabel?.text = item.title
@@ -62,6 +63,7 @@ class ToDoListViewController: UITableViewController {
         }else {
             cell.textLabel?.text = "No items added yet"
         }
+        
         return cell
     }
     
@@ -133,6 +135,18 @@ class ToDoListViewController: UITableViewController {
     
     func loadItems() {
         itemArray = selectedCategory?.items.sorted(byKeyPath: "dateCreated", ascending: true)
+    }
+    
+    override func updateModel(at indexPath: IndexPath) {
+        if let item = itemArray?[indexPath.row] {
+            do{
+                try realm.write {
+                    realm.delete(item)
+                }
+            }catch{
+                print("Error while deleting item from realm")
+            }
+        }
     }
 }
 
