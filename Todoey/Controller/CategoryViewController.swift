@@ -8,9 +8,8 @@
 
 import UIKit
 import RealmSwift
-import SwipeCellKit
 
-class CategoryViewController: UITableViewController {
+class CategoryViewController: SwipeTableViewController {
     
     // Crio uma instancia de Realm.
     let realm = try! Realm()
@@ -66,6 +65,19 @@ class CategoryViewController: UITableViewController {
         categoriesArray = realm.objects(CategoryItem.self).sorted(byKeyPath: "name", ascending: true)
     }
     
+    override func updateModel(at indexPath: IndexPath) {
+        if let item = self.categoriesArray?[indexPath.row] {
+            do{
+                try self.realm.write {
+                    self.realm.delete(item)
+                }
+            }catch{
+                print("Error while deleting category item from Realm")
+            }
+        }
+//        self.tableView.reloadData()
+    }
+    
     //MARK: - TableView DataSource Methods
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return categoriesArray?.count ?? 1
@@ -73,8 +85,15 @@ class CategoryViewController: UITableViewController {
     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         
-        let cell = tableView.dequeueReusableCell(withIdentifier: "CategoryCell", for: indexPath) as! SwipeTableViewCell
-        cell.delegate = self
+        /*
+         Para cada item que sera exibido na TableView, uma celula sera criada.
+         Tudo comeca com a chamada da funcao tableView() presente na classe mae de CategoryViewController, que e a classe SwipeTableViewController. Essa funcao basicamente configura o efeito ao qual o pacote SwipeCellKit se propoe a fazer.
+         Veja que o delegate foi dado a classe mae. Isso significa que quando o usuario tentar arrastar uma das celulas da Tableview, os metodos da classe SwipeTableViewController que serao invocados.
+         O metodo da classe mae retorna a celula com o efeito do Swipe configurado.
+         Aqui na classe CategoryViewController, recebemos a celula retornada pela classe mae e configuramos a label dessa celula, para que receba o nome da categoria.
+         
+        */
+        let cell = super.tableView(tableView, cellForRowAt: indexPath)
         
         cell.textLabel?.text = categoriesArray?[indexPath.row].name ?? "No Categories added yet"
         
@@ -103,39 +122,4 @@ class CategoryViewController: UITableViewController {
     }
 }
 
-//MARK: - Swipe Cell Delegate Methods
 
-extension CategoryViewController : SwipeTableViewCellDelegate {
-    
-    //Esse metodo e chamado quando o usuario tenta arrastar uma das celulas da tabela
-    func tableView(_ tableView: UITableView, editActionsForRowAt indexPath: IndexPath, for orientation: SwipeActionsOrientation) -> [SwipeAction]? {
-        guard orientation == .right else { return nil }
-
-        let deleteAction = SwipeAction(style: .destructive, title: "Delete") { action, indexPath in
-            // handle action by updating model with deletion
-            print("item deleted")
-            if let item = self.categoriesArray?[indexPath.row] {
-                do{
-                    try self.realm.write {
-                        self.realm.delete(item)
-                    }
-                }catch{
-                    print("Error while deleting category item from Realm")
-                }
-            }
-//            self.tableView.reloadData()
-        }
-
-        // customize the action appearance
-        deleteAction.image = UIImage(named: "delete-icon")
-
-        return [deleteAction]
-    }
-    
-    func tableView(_ tableView: UITableView, editActionsOptionsForRowAt indexPath: IndexPath, for orientation: SwipeActionsOrientation) -> SwipeOptions {
-        var options = SwipeOptions()
-        options.expansionStyle = .destructive
-        options.transitionStyle = .border
-        return options
-    }
-}
