@@ -11,6 +11,7 @@ import RealmSwift
 
 class CategoryItem : Object {
     @objc dynamic var name : String = ""
+    @objc dynamic var backgroundcolor : String?
     // Aqui estamos criando a relacao entre a classe CategoryItem e TodoItem
     // Significa que cada Categoria possui uma lista de TodoItem's
     let items = List<TodoItem>()

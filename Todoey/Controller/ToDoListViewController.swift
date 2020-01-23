@@ -8,6 +8,7 @@
 
 import UIKit
 import RealmSwift
+import ChameleonFramework
 
 class ToDoListViewController: SwipeTableViewController {
         
@@ -57,6 +58,12 @@ class ToDoListViewController: SwipeTableViewController {
         
         if let item = itemArray?[indexPath.row] {
             cell.textLabel?.text = item.title
+            
+            //Essa cor foi tirada da documentacao do Chamaeleon
+            // O metodo darken pega uma cor e coloca em um teor mais escuro, com base em uma percentagem.
+            if let color = FlatSkyBlue().darken(byPercentage: CGFloat(indexPath.row)/CGFloat(itemArray!.count)) {
+                cell.backgroundColor = color
+            }
             
             // Estou acessando a celula que foi selecionada e colocando o atributo accessoryType caso ela tenha sido selecionada . Veja la no "Atribute Inspector" que isso corresponde a um simbolo de "checked" sendo inserido no canto direito da celula.
             cell.accessoryType = item.done == true ? .checkmark : .none
