@@ -61,8 +61,10 @@ class ToDoListViewController: SwipeTableViewController {
             
             //Essa cor foi tirada da documentacao do Chamaeleon
             // O metodo darken pega uma cor e coloca em um teor mais escuro, com base em uma percentagem.
-            if let color = FlatSkyBlue().darken(byPercentage: CGFloat(indexPath.row)/CGFloat(itemArray!.count)) {
+            if let color = UIColor(hexString: selectedCategory!.backgroundcolor ?? "")?.darken(byPercentage: CGFloat(indexPath.row)/CGFloat(itemArray!.count)) {
                 cell.backgroundColor = color
+                // O metodo abaixo da framework decide por nos se a cor do texto deve ser branca ou preta de acordo com a cor que foi passada como background
+                cell.textLabel?.textColor = ContrastColorOf(color, returnFlat: true)
             }
             
             // Estou acessando a celula que foi selecionada e colocando o atributo accessoryType caso ela tenha sido selecionada . Veja la no "Atribute Inspector" que isso corresponde a um simbolo de "checked" sendo inserido no canto direito da celula.
