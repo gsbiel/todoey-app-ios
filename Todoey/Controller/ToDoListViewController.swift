@@ -43,6 +43,27 @@ class ToDoListViewController: SwipeTableViewController {
       //loadItems()
         
         tableView.rowHeight = 80.0
+        
+    }
+    
+    override func viewWillAppear(_ animated: Bool) {
+        //Estamos manipulando o navigationController neste metodo pois o metood viewDidLoad garante que a view foi carregada, mas nao garante que ela ja esta inserida no navigationController.
+        if let colorHex = selectedCategory?.backgroundcolor {
+            
+            //Aqui estamos forcando o unwapping pq o metodo viewWillAppear e chamado depois do metodo viewDidLoad. Nesse ponto, ja existe um valor carregado em selectedCategory
+            title = selectedCategory!.name
+            
+            guard let navBar = navigationController?.navigationBar else {
+                fatalError("Navigation Controller does not exist.")
+            }
+            
+            if let navBarColor = UIColor(hexString: colorHex) {
+                navBar.backgroundColor = navBarColor
+                navBar.tintColor = ContrastColorOf(navBarColor, returnFlat: true)
+                //navBar.largeTitleTextAttributes = [NSAttributedString.]
+                searchBar.barTintColor = navBarColor
+            }
+        }
     }
 
     //MARK: - TableView Datasource Methods
